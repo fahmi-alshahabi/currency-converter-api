@@ -180,16 +180,23 @@ function initialize_currencies() {
     ];
     
     // API endpoint
-    $api_url = "http://data.fixer.io/api/latest?access_key=" . API_KEY . "&base=GBP";
+    // Fixer's free plan only supports EUR as the base currency, so rates are
+    // requested against EUR and converted to a GBP base below.
+    $api_url = "http://data.fixer.io/api/latest?access_key=" . urlencode(API_KEY);
     $api_rates = [];
     
     // Try to get API rates
     try {
-        $response = @file_get_contents($api_url);
+        $response = API_KEY !== '' ? @file_get_contents($api_url) : false;
         if ($response !== false) {
             $data = json_decode($response, true);
-            if ($data && isset($data['rates'])) {
-                $api_rates = $data['rates'];
+            if ($data && !empty($data['success']) && !empty($data['rates'][BASE_CURRENCY])) {
+                $base_rate = $data['rates'][BASE_CURRENCY];
+                foreach ($data['rates'] as $code => $eur_rate) {
+                    $api_rates[$code] = $eur_rate / $base_rate;
+                }
+            } elseif (isset($data['error'])) {
+                error_log("Fixer API error: " . json_encode($data['error']));
             }
         }
     } catch (Exception $e) {

@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Meta tags for proper rendering and responsive design -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Currency Update Service</title>
+    <!-- Import Axios for AJAX requests -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
+
+    <style>
+      /* CSS Reset for consistent styling across browsers */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      /* Global CSS Variables for consistent theming and easy updates */
+      :root {
+        --primary: #7c98b3;
+        --primary-dark: #5b7b99;
+        --bg-gradient-1: #e6eff4;
+        --bg-gradient-2: #f4f7fa;
+        --text-primary: #2c3e50;
+        --text-secondary: #486581;
+        --border-color: #cbd5e1;
+        --form-bg: #ffffff;
+        --response-bg: #f8fafc;
+        --shadow-color: rgba(124, 152, 179, 0.15);
+      }
+
+      /* Base body styles with gradient background */
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Arial, sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--bg-gradient-1) 0%,
+          var(--bg-gradient-2) 100%
+        );
+        min-height: 100vh;
+        padding: 2rem;
+        line-height: 1.6;
+        color: var(--text-primary);
+      }
+
+      /* Main container with card-like appearance */
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background-color: var(--form-bg);
+        border-radius: 1rem;
+        box-shadow: 0 4px 20px var(--shadow-color);
+        overflow: hidden;
+      }
+
+      /* Header section with gradient background */
+      .header {
+        background: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--primary-dark) 100%
+        );
+        padding: 2.5rem 2rem;
+        color: white;
+        text-align: center;
+      }
+
+      /* Header title styling */
+      .header h1 {
+        font-size: 1.875rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        opacity: 0.95;
+      }
+
+      /* Header subtitle styling */
+      .header p {
+        opacity: 0.85;
+        font-size: 1rem;
+      }
+
+      /* Form container with gradient background */
+      .form-container {
+        padding: 2.5rem;
+        background: linear-gradient(
+          135deg,
+          var(--form-bg) 0%,
+          var(--bg-gradient-2) 100%
+        );
+      }
+
+      /* Form group for consistent spacing */
+      .form-group {
+        margin-bottom: 1.75rem;
+      }
+
+      /* Label styling */
+      label {
+        display: block;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
+      }
+
+      /* Custom select styling */
+      select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        color: var(--text-primary);
+        background-color: white;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        appearance: none;
+        /* Custom dropdown arrow using SVG */
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%237c98b3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 1rem;
+        padding-right: 2.5rem;
+      }
+
+      /* Select hover state */
+      select:hover {
+        border-color: var(--primary);
+        box-shadow: 0 2px 4px var(--shadow-color);
+      }
+
+      /* Select focus state */
+      select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(124, 152, 179, 0.2);
+      }
+
+      /* Submit button styling */
+      button {
+        width: 100%;
+        padding: 0.875rem;
+        background-color: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        opacity: 0.95;
+      }
+
+      /* Button hover state */
+      button:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px var(--shadow-color);
+      }
+
+      /* Button active state */
+      button:active {
+        transform: translateY(0);
+      }
+
+      /* Response section styling */
+      .response-container {
+        margin-top: 2.5rem;
+        border-top: 1px solid var(--border-color);
+        padding-top: 2rem;
+        animation: fadeIn 0.4s ease-out;
+      }
+
+      /* Response header layout */
+      .response-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+      }
+
+      /* Response title styling */
+      .response-title {
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+      }
+
+      /* Response content area styling */
+      .response-content {
+        background-color: var(--response-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        padding: 1.25rem;
+        overflow-x: auto;
+      }
+
+      /* Response content text styling */
+      .response-content pre {
+        margin: 0;
+        font-family: "Monaco", "Menlo", "Consolas", monospace;
+        font-size: 0.875rem;
+        line-height: 1.7;
+        color: var(--text-primary);
+      }
+
+      /* Fade in animation for response container */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Responsive design adjustments */
+      @media (max-width: 640px) {
+        body {
+          padding: 1rem;
+        }
+
+        .container {
+          border-radius: 0.75rem;
+        }
+
+        .header {
+          padding: 2rem 1.5rem;
+        }
+
+        .form-container {
+          padding: 1.5rem;
+        }
+      }
+
+      /* Custom scrollbar styling */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--bg-gradient-2);
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--primary);
+        border-radius: 4px;
+        opacity: 0.8;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--primary-dark);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Main container -->
+    <div class="container">
+      <!-- Header section -->
+      <div class="header">
+        <h1>Currency Update Service</h1>
+        <p>Update and manage currency exchange rates</p>
+      </div>
+
+      <!-- Form container -->
+      <div class="form-container">
+        <!-- Currency update form -->
+        <form id="updateForm">
+          <!-- Currency selection -->
+          <div class="form-group">
+            <label for="currency">Currency</label>
+            <select id="currency" name="currency" required>
+              <option value="">Select Currency</option>
+              <option value="AUD">AUD - Australian Dollar</option>
+              <option value="BRL">BRL - Brazilian Real</option>
+              <option value="CAD">CAD - Canada Dollar</option>
+              <option value="CHF">CHF - Swiss Franc</option>
+              <option value="CNY">CNY - Chinese Yuan Renminbi</option>
+              <option value="DKK">DKK - Danish Krone</option>
+              <option value="EUR">EUR - Euro</option>
+              <option value="GBP">
+                GBP - Pound Sterling (reference currency)
+              </option>
+              <option value="HKD">HKD - Hong Kong Dollar</option>
+              <option value="HUF">HUF - Hungarian Forint</option>
+              <option value="INR">INR - Indian Rupee</option>
+              <option value="JPY">JPY - Japanese Yen</option>
+              <option value="MXN">MXN - Mexican Peso</option>
+              <option value="MYR">MYR - Malaysian Ringgit</option>
+              <option value="NOK">NOK - Norwegian Krone</option>
+              <option value="NZD">NZD - New Zealand Dollar</option>
+              <option value="PHP">PHP - Philippine Peso</option>
+              <option value="RUB">RUB - Russian Ruble</option>
+              <option value="SEK">SEK - Swedish Krona</option>
+              <option value="SGD">SGD - Singapore Dollar</option>
+              <option value="THB">THB - Thai Baht</option>
+              <option value="TRY">TRY - Turkish Lira</option>
+              <option value="USD">USD - US Dollar</option>
+              <option value="XCD">XCD - Eastern Caribbean Dollar</option>
+              <option value="ZAR">ZAR - South African Rand</option>
+            </select>
+          </div>
+
+          <!-- Action selection -->
+          <div class="form-group">
+            <label for="action">Action</label>
+            <select id="action" name="action" required>
+              <option value="">Select Action</option>
+              <option value="put">PUT</option>
+              <option value="post">POST</option>
+              <option value="del">DELETE</option>
+            </select>
+          </div>
+
+          <!-- Response format selection -->
+          <div class="form-group">
+            <label for="format">Response Format</label>
+            <select id="format" name="format" required>
+              <option value="xml">XML</option>
+              <option value="json">JSON</option>
+            </select>
+          </div>
+
+          <!-- Submit button -->
+          <div class="form-group">
+            <button type="submit">Submit Request</button>
+          </div>
+        </form>
+
+        <!-- Response container -->
+        <div
+          id="responseContainer"
+          class="response-container"
+          style="display: none"
+        >
+          <div class="response-header">
+            <span class="response-title">Response</span>
+          </div>
+          <div class="response-content">
+            <pre id="responseContent"></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JavaScript for handling form submission and responses -->
+    <script>
+      // Form submission handler
+      document
+        .getElementById("updateForm")
+        .addEventListener("submit", async function (e) {
+          // Prevent default form submission
+          e.preventDefault();
+
+          // Get form values
+          const currency = document.getElementById("currency").value;
+          const action = document.getElementById("action").value;
+          const format = document.getElementById("format").value;
+
+          // Get response container elements
+          const responseContainer =
+            document.getElementById("responseContainer");
+          const responseContent = document.getElementById("responseContent");
+
+          try {
+            // Construct API URL and config
+            const url = `index.php?cur=${currency}&action=${action}&format=${format}`;
+            const config = {
+              responseType: format === "json" ? "json" : "text",
+            };
+
+            // Make AJAX request
+            const response = await axios.get(url, config);
+
+            // Show response container
+            responseContainer.style.display = "block";
+
+            // Format and display response based on type
+            if (format === "json") {
+              responseContent.textContent = JSON.stringify(
+                response.data,
+                null,
+                2
+              );
+            } else {
+              responseContent.textContent = formatXML(response.data);
+            }
+          } catch (error) {
+            // Handle and display errors
+            responseContainer.style.display = "block";
+            responseContent.textContent =
+              "Error: " + (error.response?.data || error.message);
+          }
+        });
+
+      /**
+       * Format XML string with proper indentation
+       * @param {string} xml - The XML string to format
+       * @returns {string} Formatted XML string
+       */
+      function formatXML(xml) {
+        const tab = "  ";
+        let formatted = "";
+        let indent = "";
+
+        // Process each XML node
+        xml.split(/>\s*</).forEach(function (node) {
+          // Decrease indent for closing tags
+          if (node.match(/^\/\w/)) {
+            indent = indent.substring(tab.length);
+          }
+          // Add node with current indentation
+          formatted += indent + "<" + node + ">\r\n";
+          // Increase indent for opening tags
+          if (node.match(/^<?\w[^>]*[^\/]$/)) {
+            indent += tab;
+          }
+        });
+
+        // Return formatted XML string without leading/trailing artifacts
+        return formatted.substring(1, formatted.length - 3);
+      }
+    </script>
+  </body>
+</html>

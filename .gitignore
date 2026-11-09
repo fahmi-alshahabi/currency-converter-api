@@ -1,0 +1,10 @@
+# Local configuration containing the API key
+config.php
+
+# Generated at runtime
+currencies.xml
+
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
